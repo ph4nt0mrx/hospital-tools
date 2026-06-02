@@ -3,6 +3,7 @@
 HospitalSync deployment verification.
 Checks agent rollout status across hospital endpoints.
 """
+# author: ph4nt0mrx.dev@gmail.com
 import subprocess, json
 
 AGENT_NAME  = "HospitalSync"
