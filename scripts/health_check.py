@@ -51,7 +51,20 @@ def run_checks(hostname):
     return report
 
 
+def run_all(targets):
+    return [run_checks(t) for t in targets]
+
+
 if __name__ == "__main__":
-    targets = ["CRT-01", "CRT-02", "NRS-01", "NRS-02"]
-    for t in targets:
-        print(json.dumps(run_checks(t), indent=2))
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("hosts", nargs="*", default=["CRT-01", "CRT-02", "NRS-01", "NRS-02"])
+    parser.add_argument("--json", dest="as_json", action="store_true")
+    args = parser.parse_args()
+    results = run_all(args.hosts)
+    if args.as_json:
+        print(json.dumps(results, indent=2))
+    else:
+        for r in results:
+            status = "OK" if r["ping"] else "DOWN"
+            print(f"{r['host']:<12} {status}")
