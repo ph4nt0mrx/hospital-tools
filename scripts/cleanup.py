@@ -10,24 +10,27 @@ logger = logging.getLogger(__name__)
 
 STAGING = r"C:\Staging\Updates"
 MAX_AGE_DAYS = 30
-EXTENSIONS = ["*.tmp", "*.bak", "*.old"]
+EXTENSIONS = ["*.tmp", "*.bak", "*.old", "*.log"]
+EXCLUDE_DIRS = ["Archive", "Keep"]
 
 
 def cleanup(staging_path=STAGING, max_age_days=MAX_AGE_DAYS, dry_run=False):
     cutoff = time.time() - (max_age_days * 86400)
     removed = 0
     errors = 0
-    for ext in EXTENSIONS:
-        for f in glob.glob(os.path.join(staging_path, ext)):
-            try:
-                if os.path.getmtime(f) < cutoff:
-                    if not dry_run:
-                        os.remove(f)
-                    logger.info("Removed: %s", f)
-                    removed += 1
-            except OSError as e:
-                logger.warning("Could not remove %s: %s", f, e)
-                errors += 1
+    for root, dirs, _ in os.walk(staging_path):
+        dirs[:] = [d for d in dirs if d not in EXCLUDE_DIRS]
+        for ext in EXTENSIONS:
+            for f in glob.glob(os.path.join(root, ext)):
+                try:
+                    if os.path.getmtime(f) < cutoff:
+                        if not dry_run:
+                            os.remove(f)
+                        logger.info("Removed: %s", f)
+                        removed += 1
+                except OSError as e:
+                    logger.warning("Could not remove %s: %s", f, e)
+                    errors += 1
     logger.info("Done. Removed: %d, Errors: %d", removed, errors)
     return removed, errors
 
